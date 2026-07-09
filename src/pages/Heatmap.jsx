@@ -89,7 +89,7 @@ export default function HeatmapPage({ propertyId, setPropertyId }) {
                   </td>
                   {row.cells.map((cell) => {
                     const liveCell = showLive ? hotelsData[row.name]?.channels?.[cell.ota] : null;
-                    const hasLiveIndex = liveCell?.rate && yourLiveWebsiteRate && liveCell?.link;
+                    const hasLiveIndex = !!(liveCell?.rate && yourLiveWebsiteRate && liveCell?.link);
                     const displayIndex = hasLiveIndex ? Math.round((liveCell.rate / yourLiveWebsiteRate) * 100) : cell.index;
 
                     const { bg, text } = (() => {
@@ -102,8 +102,12 @@ export default function HeatmapPage({ propertyId, setPropertyId }) {
                       ? `${formatRaw(convertCross(liveCell.rate, fetchedCurrency, currency), currency)} (live index: ${displayIndex}%)` 
                       : `Sample index: ${cell.index}% (click to check ${cell.ota} manually)`;
 
-                    // Fallback: generate a direct search link to the hotel on that specific OTA
-                    const fallbackLink = getOtaSearchLink(row.name, cell.ota, checkIn, checkOut);
+                    // MakeMyTrip affiliate links from Google Hotels often return blank pages due to region blocks.
+                    // Bypass it and use our clean search engine redirect, while keeping the live index!
+                    const useFallbackLink = !hasLiveIndex || cell.ota === "MAKEMYTRIP";
+                    const link = useFallbackLink
+                      ? getOtaSearchLink(row.name, cell.ota, checkIn, checkOut)
+                      : liveCell.link;
 
                     const content = (
                       <span
@@ -113,13 +117,13 @@ export default function HeatmapPage({ propertyId, setPropertyId }) {
                       >
                         {displayIndex}
                         {showLive && !hasLiveIndex ? "*" : ""}
-                        <ExternalLink size={8} className={hasLiveIndex ? "opacity-100" : "opacity-30"} />
+                        <ExternalLink size={8} className={hasLiveIndex && cell.ota !== "MAKEMYTRIP" ? "opacity-100" : "opacity-30"} />
                       </span>
                     );
 
                     return (
                       <td key={cell.ota} className="px-1.5 py-1.5 text-center">
-                        <a href={hasLiveIndex ? liveCell.link : fallbackLink} target="_blank" rel="noopener noreferrer">
+                        <a href={link} target="_blank" rel="noopener noreferrer">
                           {content}
                         </a>
                       </td>
