@@ -33,7 +33,7 @@ function DashboardInner({ profile, onLogout }) {
   const currentProperty = allProperties.find((p) => p.id === propertyId) || allProperties[0];
   const pageProps = { propertyId, setPropertyId };
   const pages = {
-    dashboard: <DashboardPage {...pageProps} />,
+    dashboard: <DashboardPage {...pageProps} setActive={setActive} />,
     comparison: <ComparisonPage {...pageProps} />,
     parity: <ParityPage {...pageProps} />,
     heatmap: <HeatmapPage {...pageProps} />,

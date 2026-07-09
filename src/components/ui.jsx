@@ -23,9 +23,15 @@ export function Card({ children, className = "" }) {
   return <div className={`bg-white rounded-lg border border-gray-200 shadow-sm ${className}`}>{children}</div>;
 }
 
-export function KPICard({ label, value, delta, deltaTone, icon: Icon }) {
+export function KPICard({ label, value, delta, deltaTone, icon: Icon, onClick }) {
+  const isClickable = !!onClick;
   return (
-    <Card className="p-5 flex flex-col gap-2">
+    <Card
+      className={`p-5 flex flex-col gap-2 ${
+        isClickable ? "cursor-pointer hover:border-navy/35 hover:shadow-md transition duration-200" : ""
+      }`}
+      onClick={onClick}
+    >
       <div className="flex items-center justify-between">
         <span className="text-xs uppercase tracking-wide text-gray-500">{label}</span>
         <Icon size={16} className="text-gold" />

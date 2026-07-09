@@ -7,7 +7,7 @@ import { useCompetitors } from "../lib/useCompetitors";
 import { useProperties } from "../components/PropertiesContext";
 import logoFull from "../assets/logo-full.png";
 
-export default function DashboardPage({ propertyId, setPropertyId }) {
+export default function DashboardPage({ propertyId, setPropertyId, setActive }) {
   const { allProperties } = useProperties();
   const { competitors, loading } = useCompetitors(propertyId);
   const history = useMemo(() => seedRateHistory(propertyId), [propertyId]);
@@ -27,8 +27,8 @@ export default function DashboardPage({ propertyId, setPropertyId }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <KPICard label="Avg. Rate Position" value="+4.2%" delta="vs. competitor avg" deltaTone="up" icon={TrendingUp} />
-        <KPICard label="Parity Violations" value={highViolations} delta="requires attention" deltaTone="down" icon={ShieldCheck} />
-        <KPICard label="Active Alerts" value={alerts.filter((a) => !a.read).length} delta="unread" deltaTone="neutral" icon={Bell} />
+        <KPICard label="Parity Violations" value={highViolations} delta="requires attention" deltaTone="down" icon={ShieldCheck} onClick={() => setActive("parity")} />
+        <KPICard label="Active Alerts" value={alerts.filter((a) => !a.read).length} delta="unread" deltaTone="neutral" icon={Bell} onClick={() => setActive("alerts")} />
         <KPICard label="Properties Tracked" value={allProperties.length} delta={`${competitors.length} competitors set`} deltaTone="neutral" icon={Building2} />
       </div>
 
@@ -51,7 +51,11 @@ export default function DashboardPage({ propertyId, setPropertyId }) {
         <h3 className="text-sm font-semibold mb-4 text-navy">Recent Alerts</h3>
         <div className="divide-y divide-gray-100">
           {alerts.slice(0, 4).map((a) => (
-            <div key={a.id} className="flex items-center justify-between py-3 gap-3">
+            <div
+              key={a.id}
+              onClick={() => setActive("alerts")}
+              className="flex items-center justify-between py-3 px-2 rounded-md cursor-pointer hover:bg-gray-50/70 transition duration-150 -mx-2 gap-3"
+            >
               <div className="flex items-center gap-3 min-w-0">
                 <Badge tone={a.severity}>{a.severity}</Badge>
                 <div className="min-w-0">
