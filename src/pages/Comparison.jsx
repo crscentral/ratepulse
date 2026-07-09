@@ -121,12 +121,23 @@ export default function ComparisonPage({ propertyId, setPropertyId }) {
             </tr>
           </thead>
           <tbody>
-            {hotels.map((hotel, hi) => (
-              <tr key={hotel.name} className="border-b border-gray-50 hover:bg-gray-50/50">
-                <td className={`px-4 py-3 sticky left-0 bg-white z-10 w-56 min-w-[14rem] leading-tight ${hotel.isYours ? "font-semibold text-navy" : "text-gray-700"}`}>
-                  {hotel.isYours && <Star size={12} className="inline mr-1.5 -mt-0.5 text-gold fill-gold" />}
-                  {hotel.name}
-                </td>
+            {hotels.map((hotel, hi) => {
+              const isHotelUnavailable = showLive && hotelsData[hotel.name]?.unavailable;
+              return (
+                <tr key={hotel.name} className="border-b border-gray-50 hover:bg-gray-50/50">
+                  <td className="px-4 py-3 sticky left-0 bg-white z-10 w-56 min-w-[14rem] leading-tight text-gray-700">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      {hotel.isYours && <Star size={12} className="text-gold fill-gold shrink-0" />}
+                      <span className={`truncate text-sm ${hotel.isYours ? "text-navy font-semibold" : ""}`}>
+                        {hotel.name}
+                      </span>
+                      {isHotelUnavailable && (
+                        <span className="text-[10px] bg-gray-100 text-gray-500 border border-gray-200 px-1.5 py-0.5 rounded shrink-0 font-normal" title="Google Hotels returned no rates for this property on these dates. It may be sold out or unlisted.">
+                          Unavailable
+                        </span>
+                      )}
+                    </div>
+                  </td>
                 {OTAS.map((ota) => {
                   const liveCell = showLive ? hotelsData[hotel.name]?.channels?.[ota] : null;
                   const sampleRate = rates[hi][roomIndex][ota];
@@ -175,8 +186,9 @@ export default function ComparisonPage({ propertyId, setPropertyId }) {
                   );
                 })}
               </tr>
-            ))}
-          </tbody>
+            );
+          })}
+        </tbody>
         </table>
       </Card>
     </div>

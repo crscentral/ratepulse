@@ -76,12 +76,23 @@ export default function HeatmapPage({ propertyId, setPropertyId }) {
             </tr>
           </thead>
           <tbody>
-            {grid.map((row) => (
-              <tr key={row.name} className="border-b border-gray-50">
-                <td className={`px-4 py-3 sticky left-0 bg-white z-10 w-56 min-w-[14rem] leading-tight ${row.isYours ? "font-semibold text-navy" : "text-gray-700"}`}>
-                  {row.isYours && <Star size={12} className="inline mr-1.5 -mt-0.5 text-gold fill-gold" />}
-                  {row.name}
-                </td>
+            {grid.map((row) => {
+              const isHotelUnavailable = showLive && hotelsData[row.name]?.unavailable;
+              return (
+                <tr key={row.name} className="border-b border-gray-50">
+                  <td className="px-4 py-3 sticky left-0 bg-white z-10 w-56 min-w-[14rem] leading-tight text-gray-700">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      {row.isYours && <Star size={12} className="text-gold fill-gold shrink-0" />}
+                      <span className={`truncate text-sm ${row.isYours ? "text-navy font-semibold" : ""}`}>
+                        {row.name}
+                      </span>
+                      {isHotelUnavailable && (
+                        <span className="text-[10px] bg-gray-100 text-gray-500 border border-gray-200 px-1.5 py-0.5 rounded shrink-0 font-normal" title="Google Hotels returned no rates for this property on these dates. It may be sold out or unlisted.">
+                          Unavailable
+                        </span>
+                      )}
+                    </div>
+                  </td>
                 {row.cells.map((cell) => {
                   const liveCell = showLive ? hotelsData[row.name]?.channels?.[cell.ota] : null;
                   const hasLiveIndex = liveCell?.rate && yourLiveWebsiteRate && liveCell?.link;
@@ -126,8 +137,9 @@ export default function HeatmapPage({ propertyId, setPropertyId }) {
                   );
                 })}
               </tr>
-            ))}
-          </tbody>
+            );
+          })}
+        </tbody>
         </table>
       </Card>
     </div>
