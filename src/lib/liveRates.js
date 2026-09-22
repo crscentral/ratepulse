@@ -137,9 +137,9 @@ export function useLiveRates({ propertyId, hotelName, city, checkIn, checkOut, c
 
 export function getOtaSearchLink(hotelName, ota, checkIn, checkOut) {
   const query = ota === "WEBSITE" ? hotelName : `${hotelName} ${ota}`;
-  let url = `https://www.google.com/travel/search?q=${encodeURIComponent(query)}`;
+  let url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
   if (checkIn && checkOut) {
-    url += `&chi=${checkIn}&cho=${checkOut}`;
+    url += `&checkin=${checkIn}&checkout=${checkOut}`;
   }
   return url;
 }
