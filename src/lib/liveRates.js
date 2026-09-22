@@ -136,9 +136,11 @@ export function useLiveRates({ propertyId, hotelName, city, checkIn, checkOut, c
 }
 
 export function getOtaSearchLink(hotelName, ota, checkIn, checkOut) {
-  const query = `${hotelName} ${ota}`;
-  // Use DuckDuckGo first-result redirect (prefixing query with \)
-  // to automatically bypass search result pages and land directly on the OTA hotel page.
-  return `https://duckduckgo.com/?q=%5C${encodeURIComponent(query)}`;
+  const query = ota === "WEBSITE" ? hotelName : `${hotelName} ${ota}`;
+  let url = `https://www.google.com/travel/search?q=${encodeURIComponent(query)}`;
+  if (checkIn && checkOut) {
+    url += `&chi=${checkIn}&cho=${checkOut}`;
+  }
+  return url;
 }
 

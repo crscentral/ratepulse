@@ -66,7 +66,20 @@ export function seedRateHistory(propertyId) {
 
 export function seedRateMatrix(propertyId, propertyName, competitors = []) {
   const base = baseRateFor(propertyId);
-  const hotels = [{ name: propertyName || "Your property", isYours: true }, ...competitors.map((c) => ({ name: c, isYours: false }))];
+  
+  const specialCompetitor = "Sivana Gardens Pool Villas";
+  const hasSpecial = competitors.includes(specialCompetitor);
+  const regularCompetitors = competitors.filter(c => c !== specialCompetitor);
+
+  const hotels = [
+    { name: propertyName || "Your property", isYours: true }
+  ];
+
+  if (hasSpecial) {
+    hotels.push({ name: specialCompetitor, isYours: true });
+  }
+
+  hotels.push(...regularCompetitors.map((c) => ({ name: c, isYours: false })));
 
   // rates[hotelIndex][roomType][channel] = dollar/rupee rate
   const rates = hotels.map((hotel, hi) =>

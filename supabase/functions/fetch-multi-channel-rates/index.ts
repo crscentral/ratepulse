@@ -89,7 +89,7 @@ async function fetchHotelChannels(hotelName, city, serpApiKey, checkIn, checkOut
       if (!top?.property_token) return { name: hotelName, unavailable: true, channels: {} };
 
       referenceRate = top.rate_per_night?.extracted_lowest ?? null;
-      propertyPageLink = searchData.search_metadata?.google_hotels_url || null;
+      propertyPageLink = `https://www.google.com/travel/search?q=${encodeURIComponent(query)}&chi=${inDate}&cho=${outDate}`;
 
       const detailUrl = `https://serpapi.com/search.json?engine=google_hotels&q=${encodeURIComponent(query)}${dateParams}&property_token=${top.property_token}&gl=th&hl=en&api_key=${serpApiKey}`;
       const detailRes = await fetch(detailUrl);
@@ -108,7 +108,7 @@ async function fetchHotelChannels(hotelName, city, serpApiKey, checkIn, checkOut
     } else if (searchData.name) {
       // Direct detail page
       referenceRate = searchData.rate_per_night?.extracted_lowest ?? null;
-      propertyPageLink = searchData.search_metadata?.google_hotels_url || null;
+      propertyPageLink = `https://www.google.com/travel/search?q=${encodeURIComponent(query)}&chi=${inDate}&cho=${outDate}`;
       pricesList = [
         ...(searchData.featured_prices || []),
         ...(searchData.prices || [])

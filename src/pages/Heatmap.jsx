@@ -23,7 +23,7 @@ export default function HeatmapPage({ propertyId, setPropertyId }) {
 
   const { live, hotelsData, fetchedCurrency, loading: refreshing, refresh, isStale } = useSharedRates();
 
-  const showLive = live && !isStale;
+  const showLive = live;
   const yourLiveWebsiteRate = showLive ? hotelsData[grid[0]?.name]?.channels?.["WEBSITE"]?.rate : null;
 
   // Resolve your hotel's website rate in the active UI currency
@@ -98,7 +98,15 @@ export default function HeatmapPage({ propertyId, setPropertyId }) {
                   </td>
                   {row.cells.map((cell) => {
                     const liveCell = showLive ? hotelsData[row.name]?.channels?.[cell.ota] : null;
-                    const hasLiveCell = !!(liveCell?.rate && liveCell?.link);
+                    const hasLiveCell = !!(liveCell?.rate);
+
+                    if (showLive && !hasLiveCell) {
+                      return (
+                        <td key={cell.ota} className="px-1.5 py-1.5 text-center">
+                          <span className="text-gray-300">-</span>
+                        </td>
+                      );
+                    }
                     
                     const rateInUI = hasLiveCell 
                       ? convertCross(liveCell.rate, fetchedCurrency, currency) 
@@ -123,12 +131,9 @@ export default function HeatmapPage({ propertyId, setPropertyId }) {
                       ? `${formatRaw(rateInUI, currency)} (vs your website: ${displayIndex}%)` 
                       : `Sample rate: ${formatRaw(rateInUI, currency)} (click to check ${cell.ota} manually)`;
 
-                    // MakeMyTrip affiliate links from Google Hotels often return blank pages due to region blocks.
-                    // Bypass it and use our clean search engine redirect, while keeping the live rate!
-                    const useFallbackLink = !hasLiveCell || cell.ota === "MAKEMYTRIP";
-                    const link = useFallbackLink
-                      ? getOtaSearchLink(row.name, cell.ota, checkIn, checkOut)
-                      : liveCell.link;
+                    const link = (hasLiveCell && liveCell.link && cell.ota !== "WEBSITE")
+                      ? liveCell.link
+                      : getOtaSearchLink(row.name, cell.ota, checkIn, checkOut);
 
                     const content = (
                       <span
@@ -137,13 +142,12 @@ export default function HeatmapPage({ propertyId, setPropertyId }) {
                         title={tooltip}
                       >
                         {formatRaw(rateInUI, currency)}
-                        {showLive && !hasLiveCell ? "*" : ""}
                         {arrow && (
                           <span className={`text-[10px] ml-0.5 font-bold ${arrowColor}`}>
                             {arrow}
                           </span>
                         )}
-                        <ExternalLink size={7} className={`ml-0.5 ${hasLiveCell && cell.ota !== "MAKEMYTRIP" ? "opacity-100" : "opacity-30"}`} />
+                        <ExternalLink size={7} className={`ml-0.5 ${hasLiveCell ? "opacity-100" : "opacity-30"}`} />
                       </span>
                     );
 

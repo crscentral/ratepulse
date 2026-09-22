@@ -4,7 +4,7 @@ import { Card, KPICard, Badge, PageHeader } from "../components/ui";
 import { seedParityViolations } from "../lib/seedData";
 import { useCompetitors } from "../lib/useCompetitors";
 import { useProperties } from "../components/PropertiesContext";
-import { useLiveParity } from "../lib/liveRates";
+import { useSharedRates } from "../components/RatesContext";
 import { useCurrency } from "../components/CurrencyContext";
 import { formatRaw, convertCross } from "../lib/currency";
 import { useDateRange, formatDateRange } from "../components/DateRangeContext";
@@ -17,31 +17,35 @@ export default function ParityPage({ propertyId, setPropertyId }) {
   const { checkIn, checkOut } = useDateRange();
   const mockViolations = useMemo(() => seedParityViolations(propertyId, competitors), [propertyId, competitors]);
 
-  const { live, channels, referenceRate, fetchedCurrency, loading: refreshing, refresh, isStale } = useLiveParity({
-    hotelName: property?.name,
-    city: property?.location,
-    checkIn,
-    checkOut,
-    currency: property?.currency || "INR",
-    fallback: null,
-  });
-
-  const showLive = live && !isStale;
+  const { live, hotelsData, fetchedCurrency, loading: refreshing, refresh, isStale } = useSharedRates();
+  
+  const showLive = live;
 
   if (loading) return null;
 
-  // Live channels (real data) take a different shape than the mock violations,
-  // so render them separately when available rather than forcing one schema.
-  const violations = showLive && channels
-    ? channels.map((c) => ({
-        channel: c.channel,
-        room: "Overall lowest rate",
-        yourDirect: convertCross(referenceRate, fetchedCurrency, currency),
-        otaRate: convertCross(c.rate, fetchedCurrency, currency),
-        diffPct: c.diffPct,
-        severity: c.severity,
-      }))
-    : mockViolations;
+  let liveViolations = null;
+  if (showLive && hotelsData[property?.name] && !hotelsData[property?.name].unavailable) {
+    const hotelLive = hotelsData[property?.name];
+    const refRate = hotelLive.referenceRate;
+    if (refRate) {
+      liveViolations = [];
+      for (const [channel, info] of Object.entries(hotelLive.channels)) {
+        if (channel === "WEBSITE" || !info.rate) continue;
+        const diffPct = Math.round(((info.rate - refRate) / refRate) * 1000) / 10;
+        const severity = diffPct <= -5 ? "high" : diffPct <= -1 ? "medium" : "ok";
+        liveViolations.push({
+          channel,
+          room: "Overall lowest rate",
+          yourDirect: convertCross(refRate, fetchedCurrency, currency),
+          otaRate: convertCross(info.rate, fetchedCurrency, currency),
+          diffPct,
+          severity,
+        });
+      }
+    }
+  }
+
+  const violations = liveViolations || mockViolations;
 
   return (
     <div>

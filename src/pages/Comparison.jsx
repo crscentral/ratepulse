@@ -26,9 +26,8 @@ export default function ComparisonPage({ propertyId, setPropertyId }) {
 
   const { live, hotelsData, fetchedCurrency, loading: refreshing, refresh, isStale } = useSharedRates();
 
-  // Only trust live cells when the data was actually fetched with the
-  // dates currently on screen — otherwise treat as not-live.
-  const showLive = live && !isStale;
+  // Display live data if it has been fetched, even if dates change. The banner will warn if it's stale.
+  const showLive = live;
 
   if (loading) return null;
 
@@ -137,15 +136,21 @@ export default function ComparisonPage({ propertyId, setPropertyId }) {
                     const yourSampleRate = rates[0][roomIndex][ota];
                     const diff = hi === 0 ? 0 : sampleRate - yourSampleRate;
 
-                    const hasLiveCell = !!(liveCell?.rate && liveCell?.link);
+                    const hasLiveCell = !!(liveCell?.rate);
+                    
+                    if (showLive && !hasLiveCell) {
+                      return (
+                        <td key={ota} className="px-3 py-3 text-center whitespace-nowrap">
+                          <span className="text-gray-300">-</span>
+                        </td>
+                      );
+                    }
+
                     const displayRate = hasLiveCell ? liveCell.rate : sampleRate;
                     
-                    // MakeMyTrip affiliate links from Google Hotels often return blank pages due to region blocks.
-                    // Override and use our clean search engine redirect, while keeping the live rate!
-                    const useFallbackLink = !hasLiveCell || ota === "MAKEMYTRIP";
-                    const link = useFallbackLink
-                      ? getOtaSearchLink(hotel.name, ota, checkIn, checkOut)
-                      : liveCell.link;
+                    const link = (hasLiveCell && liveCell.link && ota !== "WEBSITE")
+                      ? liveCell.link
+                      : getOtaSearchLink(hotel.name, ota, checkIn, checkOut);
 
                     return (
                       <td key={ota} className="px-3 py-3 text-center whitespace-nowrap">
@@ -154,28 +159,25 @@ export default function ComparisonPage({ propertyId, setPropertyId }) {
                           target="_blank"
                           rel="noopener noreferrer"
                           className={`inline-flex items-center gap-1 hover:underline ${
-                            hasLiveCell && ota !== "MAKEMYTRIP"
+                            hasLiveCell
                               ? "font-semibold text-navy hover:text-navy"
                               : "text-gray-500 hover:text-navy"
                           }`}
-                          title={hasLiveCell ? `Rate from Google. Click to open.` : `Live rate unavailable. Click to check ${ota} manually.`}
+                          title={hasLiveCell ? `Rate from Google. Click to open.` : `Sample rate. Click to check ${ota} manually.`}
                         >
                           <span className={
                             hotel.isYours
                               ? "font-semibold text-navy/70"
-                              : (!hasLiveCell && showLive)
-                                ? "text-gray-400 italic font-normal"
-                                : "text-gray-600"
+                              : "text-gray-600"
                           }>
                             {hasLiveCell
                               ? formatRaw(convertCross(displayRate, fetchedCurrency, currency), currency)
                               : formatCurrency(displayRate, currency)}
-                            {!hasLiveCell && showLive && "*"}
                           </span>
-                          <ExternalLink size={hasLiveCell && ota !== "MAKEMYTRIP" ? 10 : 8} className={hasLiveCell && ota !== "MAKEMYTRIP" ? "text-navy" : "text-gray-400"} />
+                          <ExternalLink size={hasLiveCell ? 10 : 8} className={hasLiveCell ? "text-navy" : "text-gray-400"} />
                         </a>
                         {!hasLiveCell && !hotel.isYours && (
-                          <span className={`ml-1 text-[10px] ${showLive ? "opacity-50" : ""} ${diff > 0 ? "text-emerald-600" : diff < 0 ? "text-red-500" : "text-gray-400"}`}>
+                          <span className={`ml-1 text-[10px] ${diff > 0 ? "text-emerald-600" : diff < 0 ? "text-red-500" : "text-gray-400"}`}>
                             {diff > 0 ? "▲" : diff < 0 ? "▼" : "–"}
                           </span>
                         )}
