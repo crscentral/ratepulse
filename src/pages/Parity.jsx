@@ -24,19 +24,20 @@ export default function ParityPage({ propertyId, setPropertyId }) {
   if (loading) return null;
 
   let liveViolations = null;
+  let referenceRate = null;
   if (showLive && hotelsData[property?.name] && !hotelsData[property?.name].unavailable) {
     const hotelLive = hotelsData[property?.name];
-    const refRate = hotelLive.referenceRate;
-    if (refRate) {
+    referenceRate = hotelLive.referenceRate;
+    if (referenceRate) {
       liveViolations = [];
       for (const [channel, info] of Object.entries(hotelLive.channels)) {
         if (channel === "WEBSITE" || !info.rate) continue;
-        const diffPct = Math.round(((info.rate - refRate) / refRate) * 1000) / 10;
+        const diffPct = Math.round(((info.rate - referenceRate) / referenceRate) * 1000) / 10;
         const severity = diffPct <= -5 ? "high" : diffPct <= -1 ? "medium" : "ok";
         liveViolations.push({
           channel,
           room: "Overall lowest rate",
-          yourDirect: convertCross(refRate, fetchedCurrency, currency),
+          yourDirect: convertCross(referenceRate, fetchedCurrency, currency),
           otaRate: convertCross(info.rate, fetchedCurrency, currency),
           diffPct,
           severity,
